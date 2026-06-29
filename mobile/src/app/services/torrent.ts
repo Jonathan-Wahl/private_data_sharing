@@ -28,7 +28,6 @@ export interface TorrentJob {
   error?: string;
   files: TorrentFileEntry[];
   id: string;
-  legalAcknowledgement: true;
   name: string;
   peers: number;
   progress: number;
@@ -119,22 +118,13 @@ export class TorrentService {
     this.registerDesktopUpdates();
   }
 
-  async addMagnet(
-    magnetUri: string,
-    legalAcknowledgement: boolean,
-    vpnRequired: boolean,
-  ): Promise<TorrentJob> {
-    if (!legalAcknowledgement) {
-      throw new Error('Legal torrent acknowledgement is required.');
-    }
-
+  async addMagnet(magnetUri: string, vpnRequired: boolean): Promise<TorrentJob> {
     if (!magnetUri.startsWith('magnet:?')) {
       throw new Error('Enter a valid magnet URI.');
     }
 
     return this.addJob({
       files: [],
-      legalAcknowledgement: true,
       name: this.nameFromMagnet(magnetUri),
       source: magnetUri,
       sourceType: 'magnet',
@@ -142,18 +132,9 @@ export class TorrentService {
     });
   }
 
-  async addTorrentFile(
-    file: File,
-    legalAcknowledgement: boolean,
-    vpnRequired: boolean,
-  ): Promise<TorrentJob> {
-    if (!legalAcknowledgement) {
-      throw new Error('Legal torrent acknowledgement is required.');
-    }
-
+  async addTorrentFile(file: File, vpnRequired: boolean): Promise<TorrentJob> {
     return this.addJob({
       files: [{ length: file.size, name: file.name }],
-      legalAcknowledgement: true,
       name: file.name,
       source: await this.fileToBase64(file),
       sourceType: 'torrent-file',
@@ -174,7 +155,7 @@ export class TorrentService {
     return {
       canDownload: true,
       detail:
-        'This build downloads legal torrents with WebTorrent. Browser, Android, and iOS WebView downloads require WebRTC-capable torrent swarms and trackers.',
+        'This build downloads torrents with WebTorrent. Browser, Android, and iOS WebView downloads require WebRTC-capable torrent swarms and trackers.',
       mode: 'webtorrent',
     };
   }
@@ -241,10 +222,7 @@ export class TorrentService {
   }
 
   private async addJob(
-    input: Pick<
-      TorrentJob,
-      'files' | 'legalAcknowledgement' | 'name' | 'source' | 'sourceType' | 'vpnRequired'
-    >,
+    input: Pick<TorrentJob, 'files' | 'name' | 'source' | 'sourceType' | 'vpnRequired'>,
   ): Promise<TorrentJob> {
     const job: TorrentJob = {
       ...input,

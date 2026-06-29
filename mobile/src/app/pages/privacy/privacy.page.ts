@@ -31,7 +31,7 @@ export class PrivacyPage {
     {
       title: 'Torrent limitation',
       detail:
-        'This web build validates and manages legal torrent jobs, but real torrent transport requires a native Android or iOS engine.',
+        'Torrent downloads run locally through the app runtime. Browser and mobile WebView downloads depend on WebRTC-capable swarms and trackers.',
     },
   ];
 }

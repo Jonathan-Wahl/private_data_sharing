@@ -13,7 +13,6 @@ export class TorrentPage implements OnDestroy, OnInit {
   engineStatus: TorrentEngineStatus = this.torrentService.engineStatus();
   error = '';
   jobs: TorrentJob[] = [];
-  legalAcknowledgement = false;
   magnetUri = '';
   vpnRequired = false;
   vpnStatus: VpnStatus = {
@@ -45,11 +44,7 @@ export class TorrentPage implements OnDestroy, OnInit {
     this.error = '';
 
     try {
-      await this.torrentService.addMagnet(
-        this.magnetUri.trim(),
-        this.legalAcknowledgement,
-        this.vpnRequired,
-      );
+      await this.torrentService.addMagnet(this.magnetUri.trim(), this.vpnRequired);
       this.magnetUri = '';
       await this.refresh();
     } catch (error) {
@@ -65,7 +60,7 @@ export class TorrentPage implements OnDestroy, OnInit {
     }
 
     try {
-      await this.torrentService.addTorrentFile(file, this.legalAcknowledgement, this.vpnRequired);
+      await this.torrentService.addTorrentFile(file, this.vpnRequired);
       await this.refresh();
     } catch (error) {
       this.error = error instanceof Error ? error.message : 'Unable to add torrent file.';

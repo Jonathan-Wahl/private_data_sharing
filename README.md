@@ -1,6 +1,6 @@
 # Secure Share
 
-Privacy-first workspace for encrypted text/file sharing, short-lived signaling, and legal torrent downloading across mobile, web, and desktop.
+Privacy-first workspace for encrypted text/file sharing, short-lived signaling, and torrent downloading across mobile, web, and desktop.
 
 ## Layout
 
@@ -16,7 +16,7 @@ Privacy-first workspace for encrypted text/file sharing, short-lived signaling, 
 - Receive/decrypt text and file share codes on device.
 - Store transfer history, torrent jobs, and VPN-required preferences locally with Capacitor Preferences.
 - Use local/offline signaling by default, or Rails API signaling when `mobile/src/environments/environment*.ts` sets `signalingApiBaseUrl`.
-- Download legal torrents from magnet URIs or `.torrent` files.
+- Download torrents from magnet URIs or `.torrent` files.
 - Require an active Android VPN before starting selected torrent jobs.
 - Package the Ionic app as an Electron desktop app for Linux and Windows.
 

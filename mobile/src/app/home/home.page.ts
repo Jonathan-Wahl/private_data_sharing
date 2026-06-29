@@ -34,7 +34,7 @@ export class HomePage {
       title: 'Receive',
     },
     {
-      detail: 'Manage legal torrents through a mobile engine boundary.',
+      detail: 'Manage torrent downloads through the mobile engine.',
       icon: 'cloud-download-outline',
       route: '/torrent',
       title: 'Torrents',

@@ -44,7 +44,6 @@ describe('TorrentService', () => {
     const job = await service.addMagnet(
       'magnet:?xt=urn:btih:0123456789abcdef&dn=Public%20Archive',
       true,
-      true,
     );
 
     expect(job.vpnRequired).toBe(true);
@@ -55,7 +54,6 @@ describe('TorrentService', () => {
     const service = new TorrentService(new DownloadHistoryService(storage), storage, inactiveVpn);
     const job = await service.addMagnet(
       'magnet:?xt=urn:btih:0123456789abcdef&dn=Public%20Archive',
-      true,
       true,
     );
 
@@ -95,7 +93,6 @@ describe('TorrentService', () => {
     const service = new TorrentService(new DownloadHistoryService(storage), storage, activeVpn);
     const job = await service.addMagnet(
       'magnet:?xt=urn:btih:0123456789abcdef&dn=Public%20Archive',
-      true,
       true,
     );
 
