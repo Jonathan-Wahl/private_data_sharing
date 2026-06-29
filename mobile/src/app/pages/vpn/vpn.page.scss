@@ -5,3 +5,7 @@
 ion-card-content ion-button + ion-button {
   margin-top: 0.5rem;
 }
+
+.selected-server {
+  --background: rgba(var(--ion-color-primary-rgb), 0.08);
+}

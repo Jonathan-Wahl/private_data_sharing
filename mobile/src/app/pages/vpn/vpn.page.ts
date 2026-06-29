@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { VpnGateServer, VpnGateService } from '../../services/vpn-gate';
+import { VpnProfileService } from '../../services/vpn-profile';
 import { VpnStatus, VpnStatusService } from '../../services/vpn-status';
 
 @Component({
@@ -13,6 +14,8 @@ export class VpnPage implements OnInit {
   error = '';
   lastCheckedAt = '';
   loading = false;
+  openingServer = '';
+  selectedServer = '';
   servers: VpnGateServer[] = [];
   status: VpnStatus = {
     active: false,
@@ -21,6 +24,7 @@ export class VpnPage implements OnInit {
 
   constructor(
     private readonly vpnGate: VpnGateService,
+    private readonly vpnProfile: VpnProfileService,
     private readonly vpnStatus: VpnStatusService,
   ) {}
 
@@ -44,6 +48,24 @@ export class VpnPage implements OnInit {
 
   openProviderList(): void {
     window.open('https://www.vpngate.net/en/', '_blank', 'noopener,noreferrer');
+  }
+
+  async connectToProvider(server: VpnGateServer): Promise<void> {
+    this.error = '';
+    this.openingServer = server.hostName;
+    this.selectedServer = server.hostName;
+
+    try {
+      await this.vpnProfile.openOpenVpnProfile(server.hostName, server.openVpnConfigBase64);
+      setTimeout(() => {
+        void this.refreshStatus();
+      }, 1000);
+    } catch (error) {
+      this.error =
+        error instanceof Error ? error.message : 'Unable to open this VPN profile on this device.';
+    } finally {
+      this.openingServer = '';
+    }
   }
 
   async openVpnSettings(): Promise<void> {

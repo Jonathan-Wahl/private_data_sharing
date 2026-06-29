@@ -19,6 +19,7 @@ describe('VpnGateService', () => {
         hasOpenVpnConfig: true,
         hostName: 'fast',
         ip: '192.0.2.2',
+        openVpnConfigBase64: 'Y29uZmln',
         ping: 30,
         speedMbps: 0.04,
       }),

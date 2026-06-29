@@ -48,7 +48,14 @@
   </ion-text>
 
   <ion-list *ngIf="servers.length" class="server-list">
-    <ion-item *ngFor="let server of servers">
+    <ion-item
+      *ngFor="let server of servers"
+      (click)="connectToProvider(server)"
+      [button]="server.hasOpenVpnConfig"
+      [class.selected-server]="selectedServer === server.hostName"
+      [disabled]="!server.hasOpenVpnConfig || openingServer === server.hostName"
+      detail="true"
+    >
       <ion-label>
         <h2>{{ server.country }} · {{ server.hostName }}</h2>
         <p>{{ server.ip }} · {{ server.speedMbps | number: '1.0-2' }} Mbps</p>
@@ -57,7 +64,18 @@
           server.uptimeHours | number: '1.0-1' }}h
         </p>
         <p *ngIf="server.hasOpenVpnConfig">OpenVPN config available</p>
+        <p *ngIf="!server.hasOpenVpnConfig">No OpenVPN profile provided</p>
       </ion-label>
+      <ion-spinner
+        *ngIf="openingServer === server.hostName"
+        name="crescent"
+        slot="end"
+      ></ion-spinner>
+      <ion-icon
+        *ngIf="openingServer !== server.hostName"
+        name="shield-checkmark-outline"
+        slot="end"
+      ></ion-icon>
     </ion-item>
   </ion-list>
 </ion-content>

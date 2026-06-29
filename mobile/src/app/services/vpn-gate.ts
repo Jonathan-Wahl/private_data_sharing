@@ -7,6 +7,7 @@ export interface VpnGateServer {
   hasOpenVpnConfig: boolean;
   hostName: string;
   ip: string;
+  openVpnConfigBase64: string;
   ping: number;
   sessions: number;
   speedMbps: number;
@@ -46,6 +47,7 @@ export class VpnGateService {
         hasOpenVpnConfig: columns[14].length > 0,
         hostName: columns[0],
         ip: columns[1],
+        openVpnConfigBase64: columns[14],
         ping: Number(columns[3]) || 0,
         sessions: Number(columns[7]) || 0,
         speedMbps: Math.round(((Number(columns[4]) || 0) / 1_000_000) * 100) / 100,
