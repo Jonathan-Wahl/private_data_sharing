@@ -22,6 +22,11 @@
         <ion-icon name="shield-outline" slot="start"></ion-icon>
         VPN Settings
       </ion-button>
+      <ion-button (click)="disconnect()" color="danger" fill="clear" size="small">
+        <ion-icon name="power-outline" slot="start"></ion-icon>
+        Disconnect
+      </ion-button>
+      <p class="profile-state">In-app engine: {{ profileStatus.state }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -63,7 +68,7 @@
           Ping {{ server.ping | number }} ms · Sessions {{ server.sessions | number }} · Uptime {{
           server.uptimeHours | number: '1.0-1' }}h
         </p>
-        <p *ngIf="server.hasOpenVpnConfig">OpenVPN config available</p>
+        <p *ngIf="server.hasOpenVpnConfig">Tap to connect in app</p>
         <p *ngIf="!server.hasOpenVpnConfig">No OpenVPN profile provided</p>
       </ion-label>
       <ion-spinner

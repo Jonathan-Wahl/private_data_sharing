@@ -162,4 +162,6 @@ The API includes a Brakeman ignore file only for runtime lifecycle warnings from
 
 - Web, Android, and iOS WebView torrent downloads use WebTorrent and require WebRTC-capable torrent swarms and trackers.
 - Android can block VPN-required torrent jobs until the OS reports an active VPN transport.
+- Android can connect selected VPN Gate OpenVPN profiles in app through the bundled OpenVPN engine and Android VPN consent flow.
+- iOS requires a Network Extension/Packet Tunnel target for equivalent in-app OpenVPN support.
 - Electron desktop builds download through the main-process WebTorrent engine and save completed files under the user's downloads folder.

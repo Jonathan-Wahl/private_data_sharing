@@ -2,16 +2,24 @@ import { Injectable } from '@angular/core';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
 interface NativeVpnProfilePlugin {
-  openOpenVpnProfile(options: { config: string; fileName: string }): Promise<void>;
+  connectOpenVpnProfile(options: { config: string }): Promise<VpnProfileStatus>;
+  disconnect(): Promise<VpnProfileStatus>;
+  getStatus(): Promise<VpnProfileStatus>;
 }
 
 const nativeVpnProfile = registerPlugin<NativeVpnProfilePlugin>('VpnProfile');
+
+export interface VpnProfileStatus {
+  active: boolean;
+  platform: string;
+  state: 'connected' | 'connecting' | 'disconnected' | 'disconnecting' | 'downloaded';
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class VpnProfileService {
-  async openOpenVpnProfile(serverName: string, configBase64: string): Promise<void> {
+  async connectOpenVpnProfile(serverName: string, configBase64: string): Promise<VpnProfileStatus> {
     if (!configBase64) {
       throw new Error('This provider did not include an OpenVPN profile.');
     }
@@ -20,11 +28,40 @@ export class VpnProfileService {
     const config = this.decodeBase64(configBase64);
 
     if (Capacitor.getPlatform() === 'android') {
-      await nativeVpnProfile.openOpenVpnProfile({ config, fileName });
-      return;
+      return nativeVpnProfile.connectOpenVpnProfile({ config });
     }
 
     this.downloadProfile(fileName, config);
+
+    return {
+      active: false,
+      platform: Capacitor.getPlatform(),
+      state: 'downloaded',
+    };
+  }
+
+  async disconnect(): Promise<VpnProfileStatus> {
+    if (Capacitor.getPlatform() === 'android') {
+      return nativeVpnProfile.disconnect();
+    }
+
+    return {
+      active: false,
+      platform: Capacitor.getPlatform(),
+      state: 'disconnected',
+    };
+  }
+
+  async getStatus(): Promise<VpnProfileStatus> {
+    if (Capacitor.getPlatform() === 'android') {
+      return nativeVpnProfile.getStatus();
+    }
+
+    return {
+      active: false,
+      platform: Capacitor.getPlatform(),
+      state: 'disconnected',
+    };
   }
 
   profileFileName(serverName: string): string {

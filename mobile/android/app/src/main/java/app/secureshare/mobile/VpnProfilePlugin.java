@@ -1,69 +1,132 @@
 package app.secureshare.mobile;
 
-import android.content.ActivityNotFoundException;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.VpnService;
 
-import androidx.core.content.FileProvider;
+import androidx.activity.result.ActivityResult;
 
+import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.charset.StandardCharsets;
+import com.tim.openvpn.configuration.OpenVPNConfig;
+import com.tim.openvpn.service.OpenVPNService;
 
 @CapacitorPlugin(name = "VpnProfile")
 public class VpnProfilePlugin extends Plugin {
+    private String pendingConfig;
+
     @PluginMethod
-    public void openOpenVpnProfile(PluginCall call) {
+    public void connectOpenVpnProfile(PluginCall call) {
         String config = call.getString("config");
-        String fileName = call.getString("fileName", "vpn-profile.ovpn");
 
         if (config == null || config.isBlank()) {
             call.reject("This provider did not include an OpenVPN profile.");
             return;
         }
 
-        try {
-            File profilesDirectory = new File(getContext().getCacheDir(), "vpn-profiles");
+        Intent permissionIntent = VpnService.prepare(getContext());
 
-            if (!profilesDirectory.exists() && !profilesDirectory.mkdirs()) {
-                call.reject("Unable to prepare VPN profile storage.");
-                return;
-            }
-
-            File profileFile = new File(profilesDirectory, safeFileName(fileName));
-
-            try (FileOutputStream output = new FileOutputStream(profileFile, false)) {
-                output.write(config.getBytes(StandardCharsets.UTF_8));
-            }
-
-            Uri profileUri = FileProvider.getUriForFile(
-                    getContext(),
-                    getContext().getPackageName() + ".fileprovider",
-                    profileFile
-            );
-            Intent intent = new Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(profileUri, "application/x-openvpn-profile")
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-            Intent chooser = Intent.createChooser(intent, "Open VPN profile")
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            getContext().startActivity(chooser);
-            call.resolve();
-        } catch (ActivityNotFoundException error) {
-            call.reject("Install an OpenVPN-compatible app to open this provider profile.");
-        } catch (Exception error) {
-            call.reject("Unable to open this VPN profile.", error);
+        if (permissionIntent != null) {
+            pendingConfig = config;
+            startActivityForResult(call, permissionIntent, "handleVpnPermissionResult");
+            return;
         }
+
+        startOpenVpn(config);
+        call.resolve(statusResult("connecting"));
     }
 
-    private String safeFileName(String fileName) {
-        String safeName = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+    @PluginMethod
+    public void disconnect(PluginCall call) {
+        OpenVPNService.Companion.stopService(getContext());
+        call.resolve(statusResult("disconnecting"));
+    }
 
-        return safeName.endsWith(".ovpn") ? safeName : safeName + ".ovpn";
+    @PluginMethod
+    public void getStatus(PluginCall call) {
+        call.resolve(statusResult(isVpnActive() ? "connected" : "disconnected"));
+    }
+
+    @ActivityCallback
+    private void handleVpnPermissionResult(PluginCall call, ActivityResult result) {
+        if (call == null) {
+            pendingConfig = null;
+            return;
+        }
+
+        if (result.getResultCode() != Activity.RESULT_OK) {
+            pendingConfig = null;
+            call.reject("VPN permission was not granted.");
+            return;
+        }
+
+        String config = pendingConfig;
+        pendingConfig = null;
+
+        if (config == null || config.isBlank()) {
+            call.reject("VPN profile was not available after permission approval.");
+            return;
+        }
+
+        startOpenVpn(config);
+        call.resolve(statusResult("connecting"));
+    }
+
+    private JSObject statusResult(String state) {
+        JSObject result = new JSObject();
+
+        result.put("active", isVpnActive());
+        result.put("platform", "android");
+        result.put("state", state);
+
+        return result;
+    }
+
+    private void startOpenVpn(String config) {
+        OpenVPNService.Companion.startService(
+                getContext(),
+                new OpenVPNConfig(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        config
+                ),
+                null,
+                new String[0]
+        );
+    }
+
+    private boolean isVpnActive() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager == null) {
+            return false;
+        }
+
+        Network activeNetwork = connectivityManager.getActiveNetwork();
+
+        if (activeNetwork == null) {
+            return false;
+        }
+
+        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
+
+        return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
     }
 }
