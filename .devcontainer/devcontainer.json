@@ -1,0 +1,35 @@
+{
+  "name": "Secure Share Android Dev",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/peer_to_peer_downloader",
+  "runServices": ["android-emulator"],
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [3000, 4200, 15555, 16080],
+  "portsAttributes": {
+    "3000": {
+      "label": "Rails API"
+    },
+    "4200": {
+      "label": "Ionic Mobile"
+    },
+    "15555": {
+      "label": "Android ADB"
+    },
+    "16080": {
+      "label": "Android Emulator noVNC"
+    }
+  },
+  "postCreateCommand": "chmod +x start.sh && cd mobile && npm install && cd ../api && bundle config set path vendor/bundle && bundle install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Angular.ng-template",
+        "Dart-Code.flutter",
+        "esbenp.prettier-vscode",
+        "rebornix.Ruby",
+        "shopify.ruby-lsp"
+      ]
+    }
+  }
+}

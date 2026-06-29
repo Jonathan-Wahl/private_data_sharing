@@ -1,0 +1,35 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Secure Share</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <section class="hero ion-padding">
+    <h1>Encrypted sharing, local history, legal torrents.</h1>
+    <p>
+      Files and text are encrypted on this device before they are transferred. The app keeps
+      payloads out of cloud storage and uses only short-lived coordination metadata.
+    </p>
+    <ion-button routerLink="/privacy" expand="block">
+      <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+      Privacy model
+    </ion-button>
+  </section>
+
+  <ion-list lines="none" class="action-list">
+    <ion-item
+      *ngFor="let action of actions"
+      [routerLink]="action.route"
+      button
+      detail="true"
+      class="action-item"
+    >
+      <ion-icon [name]="action.icon" slot="start"></ion-icon>
+      <ion-label>
+        <h2>{{ action.title }}</h2>
+        <p>{{ action.detail }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Receive</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-textarea
+      [(ngModel)]="shareCode"
+      autoGrow="true"
+      label="Share code"
+      labelPlacement="stacked"
+      placeholder="Paste the QR/share code payload"
+      rows="8"
+    ></ion-textarea>
+  </ion-item>
+
+  <ion-button (click)="decrypt()" [disabled]="isWorking" expand="block" class="primary-action">
+    <ion-spinner *ngIf="isWorking" name="crescent" slot="start"></ion-spinner>
+    <ion-icon *ngIf="!isWorking" name="unlock-outline" slot="start"></ion-icon>
+    Decrypt
+  </ion-button>
+
+  <ion-text color="danger" *ngIf="error">
+    <p>{{ error }}</p>
+  </ion-text>
+
+  <section *ngIf="decryptedText" class="result">
+    <ion-item>
+      <ion-textarea
+        [ngModel]="decryptedText"
+        autoGrow="true"
+        label="Decrypted text"
+        labelPlacement="stacked"
+        readonly="true"
+      ></ion-textarea>
+    </ion-item>
+  </section>
+
+  <section *ngIf="downloadUrl" class="result">
+    <ion-button [href]="downloadUrl" [download]="fileName" expand="block">
+      <ion-icon name="download-outline" slot="start"></ion-icon>
+      Save {{ fileName }}
+    </ion-button>
+  </section>
+</ion-content>

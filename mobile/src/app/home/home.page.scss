@@ -1,0 +1,31 @@
+.hero {
+  background: linear-gradient(135deg, #12343b, #1d5f60);
+  color: #ffffff;
+}
+
+.hero h1 {
+  font-size: 2rem;
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+}
+
+.hero p {
+  color: rgba(255, 255, 255, 0.86);
+  margin-bottom: 1.25rem;
+}
+
+.action-list {
+  background: transparent;
+  padding: 0.75rem;
+}
+
+.action-item {
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+ion-icon {
+  color: var(--ion-color-primary);
+  font-size: 1.5rem;
+}

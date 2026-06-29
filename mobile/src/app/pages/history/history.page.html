@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>History</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="clear()" [disabled]="!records.length">
+        <ion-icon name="trash-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list *ngIf="records.length; else emptyState">
+    <ion-item *ngFor="let record of records">
+      <ion-label>
+        <h2>{{ record.name }}</h2>
+        <p>{{ record.kind }} · {{ record.status }}</p>
+        <p>{{ record.updatedAt | date: 'medium' }}</p>
+      </ion-label>
+      <ion-badge slot="end" color="medium">
+        {{ record.bytesReceived || record.bytesTotal || 0 | number }} B
+      </ion-badge>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #emptyState>
+    <section class="empty-state">
+      <ion-icon name="time-outline"></ion-icon>
+      <h2>No local history</h2>
+      <p>Transfer and queue records stay on this device and can be cleared at any time.</p>
+    </section>
+  </ng-template>
+</ion-content>

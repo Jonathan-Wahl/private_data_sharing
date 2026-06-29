@@ -1,0 +1,31 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    depends_on:
+      - android-emulator
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      ANDROID_SERIAL: android-emulator:5555
+      CAPACITOR_ANDROID_STUDIO_PATH: /bin/false
+      RAILS_ENV: development
+    ports:
+      - "3000:3000"
+      - "4200:4200"
+    volumes:
+      - ..:/workspaces/peer_to_peer_downloader:cached
+
+  android-emulator:
+    image: budtmo/docker-android:emulator_11.0
+    privileged: true
+    environment:
+      DEVICE: "Pixel_5"
+      EMULATOR_ARGS: "-no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect"
+      WEB_VNC: "true"
+    ports:
+      - "127.0.0.1:15555:5555"
+      - "127.0.0.1:16080:6080"
+    shm_size: "2gb"

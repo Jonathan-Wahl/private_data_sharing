@@ -1,0 +1,13 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "edf687f759ec9765bd5db185dbc615c80af77d6e7e19386fc42934e7a80307af",
+      "note": "Generated environment currently runs Ruby 3.1.2. Upgrade runtime to a supported Ruby before production deployment."
+    },
+    {
+      "fingerprint": "21ab0fe00fdd5899ffc405cff75aadb91b805ee996a614f7e27b08a287e9062d",
+      "note": "Rails 7.2 support warning. Track Rails upgrade before the 2026-08-09 support end date."
+    }
+  ],
+  "updated": "2026-06-29"
+}

@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Share File</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <label class="file-picker">
+    <ion-icon name="document-attach-outline"></ion-icon>
+    <span>{{ selectedFile ? selectedFile.name : 'Choose file' }}</span>
+    <input (change)="onFileSelected($event)" type="file" />
+  </label>
+
+  <ion-note *ngIf="selectedFile">
+    {{ selectedFile.size | number }} bytes selected. Encryption happens before transfer.
+  </ion-note>
+
+  <ion-button (click)="prepare()" [disabled]="isWorking" expand="block" class="primary-action">
+    <ion-spinner *ngIf="isWorking" name="crescent" slot="start"></ion-spinner>
+    <ion-icon *ngIf="!isWorking" name="lock-closed-outline" slot="start"></ion-icon>
+    Encrypt File
+  </ion-button>
+
+  <ion-text color="danger" *ngIf="error">
+    <p>{{ error }}</p>
+  </ion-text>
+
+  <section *ngIf="prepared" class="result">
+    <img [src]="prepared.qrDataUrl" alt="Encrypted file share QR code" />
+    <ion-item>
+      <ion-textarea
+        [ngModel]="prepared.shareCode"
+        label="Share code"
+        labelPlacement="stacked"
+        readonly="true"
+        rows="7"
+      ></ion-textarea>
+    </ion-item>
+  </section>
+</ion-content>

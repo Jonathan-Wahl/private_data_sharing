@@ -1,0 +1,27 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Privacy</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <section class="intro">
+    <h1>Threat Model</h1>
+    <p>
+      The app protects shared content from the coordination layer by encrypting payloads before
+      transfer. A recipient needs the share secret from the QR/share code to decrypt.
+    </p>
+  </section>
+
+  <ion-list lines="full">
+    <ion-item *ngFor="let point of points">
+      <ion-label>
+        <h2>{{ point.title }}</h2>
+        <p>{{ point.detail }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

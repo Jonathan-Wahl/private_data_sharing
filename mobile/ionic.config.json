@@ -1,0 +1,7 @@
+{
+  "name": "secure-share",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
