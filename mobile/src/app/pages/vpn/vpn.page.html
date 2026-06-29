@@ -1,0 +1,63 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>VPN</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ statusLabel() }}</ion-card-title>
+      <ion-card-subtitle>{{ status.platform }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button (click)="refreshStatus()" fill="outline" size="small">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Refresh
+      </ion-button>
+      <ion-button (click)="openVpnSettings()" fill="clear" size="small">
+        <ion-icon name="shield-outline" slot="start"></ion-icon>
+        VPN Settings
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Provider list</ion-card-title>
+      <ion-card-subtitle *ngIf="lastCheckedAt">Checked {{ lastCheckedAt }}</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-button (click)="checkProviderList()" [disabled]="loading" expand="block">
+        <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!loading" name="search-outline" slot="start"></ion-icon>
+        Check VPN list
+      </ion-button>
+      <ion-button (click)="openProviderList()" expand="block" fill="outline">
+        <ion-icon name="open-outline" slot="start"></ion-icon>
+        Open provider site
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-text color="danger" *ngIf="error">
+    <p>{{ error }}</p>
+  </ion-text>
+
+  <ion-list *ngIf="servers.length" class="server-list">
+    <ion-item *ngFor="let server of servers">
+      <ion-label>
+        <h2>{{ server.country }} · {{ server.hostName }}</h2>
+        <p>{{ server.ip }} · {{ server.speedMbps | number: '1.0-2' }} Mbps</p>
+        <p>
+          Ping {{ server.ping | number }} ms · Sessions {{ server.sessions | number }} · Uptime {{
+          server.uptimeHours | number: '1.0-1' }}h
+        </p>
+        <p *ngIf="server.hasOpenVpnConfig">OpenVPN config available</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -37,6 +37,10 @@ const routes: Routes = [
     path: 'privacy',
     loadChildren: () => import('./pages/privacy/privacy.module').then((m) => m.PrivacyPageModule),
   },
+  {
+    path: 'vpn',
+    loadChildren: () => import('./pages/vpn/vpn.module').then((m) => m.VpnPageModule),
+  },
 ];
 
 @NgModule({

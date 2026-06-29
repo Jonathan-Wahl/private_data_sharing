@@ -40,6 +40,12 @@ export class HomePage {
       title: 'Torrents',
     },
     {
+      detail: 'Check VPN status and inspect available provider servers.',
+      icon: 'shield-checkmark-outline',
+      route: '/vpn',
+      title: 'VPN',
+    },
+    {
       detail: 'Review local-only queue and transfer history.',
       icon: 'time-outline',
       route: '/history',
