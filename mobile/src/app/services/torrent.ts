@@ -31,11 +31,15 @@ export interface TorrentJob {
   completedFiles: TorrentCompletedFile[];
   currentTracker?: string;
   dhtNodes?: number;
+  dhtRunning?: boolean;
   downloadSpeed: number;
   error?: string;
   files: TorrentFileEntry[];
+  firewalled?: boolean;
   hasMetadata?: boolean;
   id: string;
+  listenEndpoints?: string[];
+  nativeAlert?: string;
   nativeState?: string;
   name: string;
   peers: number;
@@ -62,6 +66,11 @@ const WEBTORRENT_TRACKERS = [
 ];
 
 const CLASSIC_TRACKERS = [
+  'udp://tracker.opentrackr.org:1337/announce',
+  'udp://open.stealth.si:80/announce',
+  'udp://tracker.torrent.eu.org:451/announce',
+  'udp://tracker.bittor.pw:1337/announce',
+  'udp://exodus.desync.com:6969/announce',
   'http://tracker.opentrackr.org:1337/announce',
   'http://tracker2.dler.org:80/announce',
   'https://tracker.bt4g.com:443/announce',
@@ -83,7 +92,7 @@ interface WebTorrentInstance {
     onTorrent: (torrent: WebTorrentTorrent) => void,
   ) => void;
   destroy: () => void;
-  get?: (torrentId: string) => WebTorrentTorrent | undefined;
+  get?: (torrentId: string) => Promise<WebTorrentTorrent | null>;
   on: (event: 'error', callback: (error: Error) => void) => void;
 }
 
@@ -99,8 +108,8 @@ interface WebTorrentTorrent {
   destroy: () => void;
   infoHash?: string;
   on: (
-    event: 'done' | 'download' | 'error' | 'warning' | 'wire',
-    callback: (value?: Error | number) => void,
+    event: 'done' | 'download' | 'error' | 'noPeers' | 'warning' | 'wire',
+    callback: (value?: Error | number | string) => void,
   ) => void;
   uploadSpeed: number;
 }
@@ -444,6 +453,7 @@ export class TorrentService {
     torrent.on('download', () => {
       void this.updateJob(job.id, {
         downloadSpeed: Math.round(torrent.downloadSpeed),
+        error: undefined,
         peers: torrent.numPeers,
         progress: Math.round(torrent.progress * 100),
         status: 'running',
@@ -452,7 +462,14 @@ export class TorrentService {
     });
 
     torrent.on('wire', () => {
-      void this.updateJob(job.id, { peers: torrent.numPeers });
+      void this.updateJob(job.id, { error: undefined, peers: torrent.numPeers });
+    });
+
+    torrent.on('noPeers', (source) => {
+      const sourceName = typeof source === 'string' ? source : 'trackers';
+      void this.updateJob(job.id, {
+        error: `No WebTorrent peers found from ${sourceName}. Browser downloads can only connect to WebRTC/WebTorrent peers; use Android or desktop for classic BitTorrent swarms.`,
+      });
     });
 
     torrent.on('warning', (warning) => {
@@ -638,7 +655,7 @@ export class TorrentService {
     const client = await this.ensureWebTorrentClient();
     const source = job.sourceType === 'magnet' ? job.source : this.base64ToUint8Array(job.source);
     const existingTorrent =
-      job.sourceType === 'magnet' ? client.get?.(this.magnetInfoHash(job.source)) : undefined;
+      job.sourceType === 'magnet' ? await client.get?.(this.magnetInfoHash(job.source)) : undefined;
 
     if (existingTorrent) {
       existingTorrent.resume();

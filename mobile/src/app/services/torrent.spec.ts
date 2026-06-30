@@ -279,7 +279,64 @@ describe('TorrentService', () => {
     expect(addCalls).toHaveLength(1);
   });
 
-  it('resumes an existing browser torrent instead of adding a duplicate', async () => {
+  it('explains when browser tracker discovery finds no WebTorrent peers', async () => {
+    let noPeersCallback: ((source: string) => void) | undefined;
+
+    window.WebTorrent = class {
+      add(
+        _source: string | Uint8Array,
+        _options: { announce: string[] },
+        onTorrent: (torrent: unknown) => void,
+      ) {
+        onTorrent({
+          destroy: () => undefined,
+          downloadSpeed: 0,
+          files: [],
+          name: 'Public Archive',
+          numPeers: 0,
+          on: (event: string, callback: (source: string) => void) => {
+            if (event === 'noPeers') {
+              noPeersCallback = callback;
+            }
+          },
+          pause: () => undefined,
+          progress: 0,
+          removeAllListeners: () => undefined,
+          resume: () => undefined,
+          uploadSpeed: 0,
+        });
+      }
+
+      destroy() {
+        return undefined;
+      }
+
+      on() {
+        return undefined;
+      }
+    };
+
+    const storage = new LocalStorageService();
+    const service = new TorrentService(new DownloadHistoryService(storage), storage, inactiveVpn);
+    const job = await service.addMagnet(
+      `magnet:?xt=urn:btih:${validInfoHash}&dn=Public%20Archive`,
+      false,
+    );
+
+    await service.setStatus(job.id, 'running');
+    noPeersCallback?.('tracker');
+    await new Promise((resolve) => setTimeout(resolve));
+
+    await expect(service.list()).resolves.toEqual([
+      expect.objectContaining({
+        error: expect.stringContaining('Browser downloads can only connect to WebRTC/WebTorrent peers'),
+        id: job.id,
+        status: 'running',
+      }),
+    ]);
+  });
+
+  it('awaits and resumes an existing browser torrent instead of adding a duplicate', async () => {
     const resume = vi.fn();
     const torrent = {
       destroy: () => undefined,
@@ -304,8 +361,8 @@ describe('TorrentService', () => {
         return undefined;
       }
 
-      get(torrentId: string) {
-        return torrentId === validInfoHash.toLowerCase() ? torrent : undefined;
+      async get(torrentId: string) {
+        return torrentId === validInfoHash.toLowerCase() ? torrent : null;
       }
 
       on() {

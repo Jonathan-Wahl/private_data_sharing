@@ -74,8 +74,13 @@
         </p>
         <p *ngIf="job.nativeState || job.hasMetadata !== undefined || job.dhtNodes !== undefined">
           {{ job.nativeState || 'native' }} · metadata {{ job.hasMetadata ? 'yes' : 'no' }} · DHT
-          nodes {{ job.dhtNodes ?? 0 }}
+          {{ job.dhtRunning ? 'on' : 'off' }} · DHT nodes {{ job.dhtNodes ?? 0 }}
         </p>
+        <p *ngIf="job.listenEndpoints?.length || job.firewalled !== undefined">
+          Listening {{ job.listenEndpoints?.length ? job.listenEndpoints?.join(', ') : 'none' }} ·
+          firewall {{ job.firewalled ? 'blocked' : 'open' }}
+        </p>
+        <p *ngIf="job.nativeAlert">Native {{ job.nativeAlert }}</p>
         <p *ngIf="job.currentTracker">
           Tracker {{ job.currentTracker }} · DHT {{ job.announcingToDht ? 'on' : 'off' }}
         </p>

@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.util.Base64;
 
 import com.frostwire.jlibtorrent.FileStorage;
+import com.frostwire.jlibtorrent.AlertListener;
 import com.frostwire.jlibtorrent.SessionParams;
 import com.frostwire.jlibtorrent.SessionManager;
 import com.frostwire.jlibtorrent.SettingsPack;
@@ -12,6 +13,9 @@ import com.frostwire.jlibtorrent.TorrentHandle;
 import com.frostwire.jlibtorrent.TorrentInfo;
 import com.frostwire.jlibtorrent.TorrentStatus;
 import com.frostwire.jlibtorrent.TorrentStatus.State;
+import com.frostwire.jlibtorrent.alerts.Alert;
+import com.frostwire.jlibtorrent.alerts.AlertType;
+import com.frostwire.jlibtorrent.alerts.ListenFailedAlert;
 import com.frostwire.jlibtorrent.swig.settings_pack;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -21,6 +25,7 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -36,8 +41,10 @@ public class NativeTorrentPlugin extends Plugin {
         "dht.transmissionbt.com:6881",
         "dht.libtorrent.org:25401"
     );
+    private static final String LISTEN_INTERFACES = "0.0.0.0:0";
     private final Map<String, NativeTorrentJob> jobs = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private volatile String lastNativeAlert;
     private SessionManager session;
 
     @Override
@@ -159,6 +166,7 @@ public class NativeTorrentPlugin extends Plugin {
 
         SettingsPack settings = new SettingsPack()
             .enableDht(true)
+            .listenInterfaces(LISTEN_INTERFACES)
             .broadcastLSD(true)
             .connectionsLimit(200)
             .activeDownloads(8)
@@ -172,16 +180,59 @@ public class NativeTorrentPlugin extends Plugin {
         settings.setBoolean(settings_pack.bool_types.enable_incoming_utp.swigValue(), true);
         settings.setBoolean(settings_pack.bool_types.enable_outgoing_tcp.swigValue(), true);
         settings.setBoolean(settings_pack.bool_types.enable_outgoing_utp.swigValue(), true);
-        settings.setBoolean(settings_pack.bool_types.prefer_udp_trackers.swigValue(), false);
+        settings.setBoolean(settings_pack.bool_types.listen_system_port_fallback.swigValue(), true);
+        settings.setBoolean(settings_pack.bool_types.prefer_udp_trackers.swigValue(), true);
         settings.setBoolean(settings_pack.bool_types.use_dht_as_fallback.swigValue(), true);
+        settings.setInteger(settings_pack.int_types.max_retry_port_bind.swigValue(), 20);
         settings.setString(
             settings_pack.string_types.dht_bootstrap_nodes.swigValue(),
             DHT_BOOTSTRAP_NODES
         );
 
         session = new SessionManager();
+        session.addListener(nativeAlertListener());
         session.start(new SessionParams(settings));
+        session.listenInterfaces(LISTEN_INTERFACES);
+        session.reopenNetworkSockets();
         session.startDht();
+    }
+
+    private AlertListener nativeAlertListener() {
+        return new AlertListener() {
+            @Override
+            public int[] types() {
+                return new int[] {
+                    AlertType.DHT_BOOTSTRAP.swig(),
+                    AlertType.DHT_ERROR.swig(),
+                    AlertType.LISTEN_FAILED.swig(),
+                    AlertType.LISTEN_SUCCEEDED.swig(),
+                    AlertType.METADATA_FAILED.swig(),
+                    AlertType.METADATA_RECEIVED.swig(),
+                    AlertType.SESSION_ERROR.swig(),
+                    AlertType.TRACKER_ERROR.swig(),
+                    AlertType.TRACKER_REPLY.swig(),
+                    AlertType.UDP_ERROR.swig()
+                };
+            }
+
+            @Override
+            public void alert(Alert<?> alert) {
+                if (alert instanceof ListenFailedAlert) {
+                    ListenFailedAlert failed = (ListenFailedAlert) alert;
+                    lastNativeAlert = String.format(
+                        "%s: %s %s:%d (%s)",
+                        alert.type().name(),
+                        failed.operation().name(),
+                        failed.address(),
+                        failed.port(),
+                        failed.error().message()
+                    );
+                    return;
+                }
+
+                lastNativeAlert = alert.type().name() + ": " + alert.message();
+            }
+        };
     }
 
     private File downloadRoot() {
@@ -231,11 +282,15 @@ public class NativeTorrentPlugin extends Plugin {
         update.put("connections", status.numConnections());
         update.put("currentTracker", status.currentTracker());
         update.put("dhtNodes", session.dhtNodes());
+        update.put("dhtRunning", session.isDhtRunning());
         update.put("downloadSpeed", status.downloadRate());
         update.put("files", files(handle));
+        update.put("firewalled", session.isFirewalled());
         update.put("hasMetadata", status.hasMetadata());
+        update.put("listenEndpoints", listenEndpoints());
         update.put("name", handle.name());
         update.put("nativeState", status.state().name());
+        update.put("nativeAlert", lastNativeAlert);
         update.put("peers", status.numPeers());
         update.put("progress", Math.round(status.progress() * 100));
         update.put("seeds", status.numSeeds());
@@ -258,6 +313,17 @@ public class NativeTorrentPlugin extends Plugin {
         }
 
         notifyListeners("torrentUpdate", update);
+    }
+
+    private JSArray listenEndpoints() {
+        JSArray endpoints = new JSArray();
+        List<String> sessionEndpoints = session.listenEndpoints();
+
+        for (String endpoint : sessionEndpoints) {
+            endpoints.put(endpoint);
+        }
+
+        return endpoints;
     }
 
     private String torrentStatus(NativeTorrentJob job, TorrentStatus status) {

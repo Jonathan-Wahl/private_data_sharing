@@ -68,7 +68,8 @@ open_url() {
   local url="$1"
   local name="$2"
 
-  if [[ "${OPEN_DEV_URLS:-1}" == "0" ]]; then
+  if [[ "${OPEN_DEV_URLS:-0}" == "0" ]]; then
+    echo "${name}: ${url}"
     return
   fi
 
