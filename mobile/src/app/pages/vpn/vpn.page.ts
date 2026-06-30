@@ -66,10 +66,8 @@ export class VpnPage implements OnInit {
         server.hostName,
         server.openVpnConfigBase64,
       );
-      setTimeout(() => {
-        void this.refreshStatus();
-        void this.refreshProfileStatus();
-      }, 1000);
+      this.status = await this.vpnStatus.waitForActive();
+      await this.refreshProfileStatus();
     } catch (error) {
       this.error =
         error instanceof Error ? error.message : 'Unable to open this VPN profile on this device.';
@@ -104,5 +102,9 @@ export class VpnPage implements OnInit {
 
   statusLabel(): string {
     return this.vpnStatus.statusLabel(this.status);
+  }
+
+  statusDetail(): string {
+    return this.vpnStatus.statusDetail(this.status);
   }
 }

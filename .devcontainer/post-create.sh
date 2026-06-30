@@ -1,42 +1,77 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="${WORKSPACE_FOLDER:-/workspaces/peer_to_peer_downloader}"
+
+if [[ ! -d "${ROOT_DIR}" ]]; then
+  cat >&2 <<ERROR
+The devcontainer workspace folder does not exist:
+  ${ROOT_DIR}
+
+Close the container and rebuild it from the repository root:
+  /home/ubuntu/peer_to_peer_downloader
+ERROR
+  exit 1
+fi
+
+cd "${ROOT_DIR}"
+
+if [[ ! -f "AGENTS.md" || ! -f "mobile/package.json" || ! -f "api/Gemfile" ]]; then
+  cat >&2 <<ERROR
+The devcontainer workspace mount is not pointing at the Secure Share repository.
+
+Expected these files under ${ROOT_DIR}:
+  - AGENTS.md
+  - mobile/package.json
+  - api/Gemfile
+
+Close the container and rebuild it from the repository root:
+  /home/ubuntu/peer_to_peer_downloader
+ERROR
+  exit 1
+fi
+
 echo "Checking development toolchain..."
 
 node --version
 npm --version
-codex --version
 ruby --version
 bundle --version
-rails --version
 psql --version
 sqlite3 --version
 redis-cli --version
+mysql --version
 java -version
-ionic --version
-cap --version
-sdkmanager --list_installed | grep -E 'platform-tools|platforms;android-35|build-tools;35.0.0' || true
+sdkmanager --list_installed | grep -E 'platform-tools|platforms;android-3[56]|build-tools;3[56]\.0\.0'
+
+echo "Installing mobile dependencies..."
+cd "${ROOT_DIR}/mobile"
+npm ci
+npx ionic --version
+npx cap --version
+
+echo "Installing API dependencies..."
+cd "${ROOT_DIR}/api"
+bundle config set path vendor/bundle
+bundle install
+bundle exec rails --version
 
 cat <<'NEXT_STEPS'
 
 Devcontainer is ready.
 
-Suggested scaffold command when you are ready to create the app:
+Run the app workflow with:
 
-  ionic start . tabs --type=angular --capacitor --no-git
-  ionic capacitor add android
+  ./start.sh
 
-Suggested legal-download app dependencies to evaluate inside the scaffold:
+Dev URLs:
+  Mobile web:      http://localhost:4200
+  Rails API:       http://localhost:3000
+  Emulator noVNC:  http://localhost:16080
 
-  npm install @capacitor/filesystem @capacitor/preferences
-
-Suggested Rails API scaffold command:
-
-  rails new api --api --database=postgresql
-
-Notes:
-- Browser-based torrent libraries such as webtorrent are constrained on mobile WebView,
-  especially around TCP/UDP tracker/DHT behavior. A production mobile torrent client
-  usually needs a native Android plugin wrapping a maintained BitTorrent engine.
-- Keep examples limited to legal, public-domain, or explicitly licensed files.
+Clipboard bridge:
+  Copy host text into the emulator:
+    emulator-clipboard set "https://example.test/share"
+  Read emulator clipboard text:
+    emulator-clipboard get
 NEXT_STEPS

@@ -17,3 +17,10 @@ vi.mock('@capacitor/preferences', () => ({
     }),
   },
 }));
+
+vi.mock('@capacitor/clipboard', () => ({
+  Clipboard: {
+    read: vi.fn(async () => ({ type: 'text/plain', value: '' })),
+    write: vi.fn(async () => undefined),
+  },
+}));

@@ -32,8 +32,13 @@
               },
               {
                 "glob": "webtorrent.min.js",
-                "input": "node_modules/webtorrent/dist",
+                "input": "src/assets/vendor",
                 "output": "assets/vendor"
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "src",
+                "output": "."
               }
             ],
             "allowedCommonJsDependencies": ["qrcode"],

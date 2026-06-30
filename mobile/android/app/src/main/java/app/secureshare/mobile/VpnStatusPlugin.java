@@ -1,10 +1,6 @@
 package app.secureshare.mobile;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.provider.Settings;
 
 import com.getcapacitor.JSObject;
@@ -20,6 +16,7 @@ public class VpnStatusPlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("active", isVpnActive());
         result.put("platform", "android");
+        result.put("serviceRunning", OpenVpnServiceState.isRunning(getContext()));
         call.resolve(result);
     }
 
@@ -32,21 +29,6 @@ public class VpnStatusPlugin extends Plugin {
     }
 
     private boolean isVpnActive() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        if (connectivityManager == null) {
-            return false;
-        }
-
-        Network activeNetwork = connectivityManager.getActiveNetwork();
-
-        if (activeNetwork == null) {
-            return false;
-        }
-
-        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
-
-        return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
+        return VpnNetworkDetector.isVpnActive(getContext());
     }
 }

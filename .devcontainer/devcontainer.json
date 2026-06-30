@@ -3,6 +3,12 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "workspace",
   "workspaceFolder": "/workspaces/peer_to_peer_downloader",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true
+    }
+  },
   "runServices": ["android-emulator"],
   "shutdownAction": "stopCompose",
   "forwardPorts": [3000, 4200, 15555, 16080],
@@ -20,7 +26,8 @@
       "label": "Android Emulator noVNC"
     }
   },
-  "postCreateCommand": "chmod +x start.sh && cd mobile && npm install && cd ../api && bundle config set path vendor/bundle && bundle install",
+  "postCreateCommand": "/usr/local/share/secure-share/post-create.sh",
+  "postStartCommand": "/usr/local/share/secure-share/wait-for-android.sh",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -28,7 +35,8 @@
         "Dart-Code.flutter",
         "esbenp.prettier-vscode",
         "rebornix.Ruby",
-        "shopify.ruby-lsp"
+        "shopify.ruby-lsp",
+        "openai.chatgpt"
       ]
     }
   }

@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 
+import { ClipboardService } from '../../services/clipboard';
 import { CryptoService } from '../../services/crypto';
 import { DownloadHistoryService } from '../../services/download-history';
 import { FileTransferService } from '../../services/file-transfer';
 import { StringShareService } from '../../services/string-share';
+import { createUuid } from '../../services/uuid';
 
 @Component({
   selector: 'app-receive',
@@ -12,6 +14,7 @@ import { StringShareService } from '../../services/string-share';
   standalone: false,
 })
 export class ReceivePage {
+  clipboardMessage = '';
   decryptedText = '';
   downloadUrl = '';
   error = '';
@@ -20,13 +23,24 @@ export class ReceivePage {
   shareCode = '';
 
   constructor(
+    private readonly clipboard: ClipboardService,
     private readonly cryptoService: CryptoService,
     private readonly fileTransfer: FileTransferService,
     private readonly history: DownloadHistoryService,
     private readonly stringShare: StringShareService,
   ) {}
 
+  async copyDecryptedText(): Promise<void> {
+    if (!this.decryptedText) {
+      return;
+    }
+
+    await this.clipboard.copyText(this.decryptedText, 'Secure Share decrypted text');
+    this.clipboardMessage = 'Decrypted text copied.';
+  }
+
   async decrypt(): Promise<void> {
+    this.clipboardMessage = '';
     this.error = '';
     this.decryptedText = '';
     this.downloadUrl = '';
@@ -46,7 +60,7 @@ export class ReceivePage {
         this.decryptedText = await this.stringShare.decrypt(this.shareCode);
         await this.history.add({
           bytesReceived: parsed.package.size,
-          id: crypto.randomUUID(),
+          id: createUuid(),
           kind: 'text-share',
           name: parsed.package.name || 'Received text',
           status: 'complete',
@@ -57,7 +71,7 @@ export class ReceivePage {
         this.fileName = parsed.package.name || 'received-file';
         await this.history.add({
           bytesReceived: parsed.package.size,
-          id: crypto.randomUUID(),
+          id: createUuid(),
           kind: 'file-share',
           name: this.fileName,
           status: 'complete',
@@ -68,5 +82,11 @@ export class ReceivePage {
     } finally {
       this.isWorking = false;
     }
+  }
+
+  async pasteShareCode(): Promise<void> {
+    this.shareCode = await this.clipboard.pasteText();
+    this.clipboardMessage = this.shareCode ? 'Share code pasted.' : 'Clipboard is empty.';
+    this.error = '';
   }
 }

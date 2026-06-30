@@ -4,6 +4,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 export interface VpnStatus {
   active: boolean;
   platform: string;
+  serviceRunning?: boolean;
 }
 
 interface NativeVpnStatusPlugin {
@@ -35,6 +36,22 @@ export class VpnStatusService {
     return (await this.getStatus()).active;
   }
 
+  async waitForActive(
+    options: { pollIntervalMs?: number; timeoutMs?: number } = {},
+  ): Promise<VpnStatus> {
+    const pollIntervalMs = options.pollIntervalMs ?? 1500;
+    const timeoutMs = options.timeoutMs ?? 45_000;
+    const startedAt = Date.now();
+    let latest = await this.getStatus();
+
+    while (!latest.active && Date.now() - startedAt < timeoutMs) {
+      await this.delay(pollIntervalMs);
+      latest = await this.getStatus();
+    }
+
+    return latest;
+  }
+
   async openSettings(): Promise<void> {
     if (Capacitor.getPlatform() === 'android') {
       await nativeVpnStatus.openSettings();
@@ -42,6 +59,28 @@ export class VpnStatusService {
   }
 
   statusLabel(status: VpnStatus): string {
+    if (!status.active && status.serviceRunning) {
+      return 'VPN tunnel not active';
+    }
+
     return status.active ? 'VPN active' : 'VPN not active';
+  }
+
+  statusDetail(status: VpnStatus): string {
+    if (status.active) {
+      return 'Android is routing app traffic through a VPN network.';
+    }
+
+    if (status.serviceRunning) {
+      return 'The VPN service is running, but Android has not established a routed VPN tunnel.';
+    }
+
+    return 'Android is not reporting an active VPN network.';
+  }
+
+  private delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, milliseconds);
+    });
   }
 }

@@ -28,6 +28,7 @@
       <ion-card-subtitle>{{ vpnStatus.platform }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
+      <p>{{ vpnStatusDetail() }}</p>
       <ion-button (click)="refreshVpnStatus()" fill="outline" size="small">
         <ion-icon name="refresh-outline" slot="start"></ion-icon>
         Refresh
@@ -67,8 +68,27 @@
       <ion-label>
         <h2>{{ job.name }}</h2>
         <p>{{ job.status }} · {{ job.progress }}% · peers {{ job.peers }}</p>
+        <p *ngIf="job.connections !== undefined || job.seeds !== undefined">
+          Connections {{ job.connections ?? 0 }} · seeds {{ job.seeds ?? 0 }} · candidates {{
+          job.connectCandidates ?? 0 }}
+        </p>
+        <p *ngIf="job.nativeState || job.hasMetadata !== undefined || job.dhtNodes !== undefined">
+          {{ job.nativeState || 'native' }} · metadata {{ job.hasMetadata ? 'yes' : 'no' }} · DHT
+          nodes {{ job.dhtNodes ?? 0 }}
+        </p>
+        <p *ngIf="job.currentTracker">
+          Tracker {{ job.currentTracker }} · DHT {{ job.announcingToDht ? 'on' : 'off' }}
+        </p>
         <p>Down {{ job.downloadSpeed | number }} B/s · Up {{ job.uploadSpeed | number }} B/s</p>
-        <p *ngIf="job.vpnRequired">VPN required</p>
+        <ion-item class="job-vpn-setting" lines="none">
+          <ion-checkbox
+            (ionChange)="updateVpnRequired(job, $event)"
+            [checked]="job.vpnRequired"
+            [disabled]="job.status === 'running'"
+            slot="start"
+          ></ion-checkbox>
+          <ion-label>Require VPN for this torrent</ion-label>
+        </ion-item>
         <p *ngIf="job.error" class="job-error">{{ job.error }}</p>
         <div *ngIf="job.completedFiles.length" class="completed-files">
           <a *ngFor="let file of job.completedFiles" [href]="file.href" [download]="file.name">

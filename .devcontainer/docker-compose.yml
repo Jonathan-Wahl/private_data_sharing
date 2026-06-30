@@ -1,9 +1,13 @@
+name: peer_to_peer_downloader_devcontainer
+
 services:
   workspace:
     build:
       context: .
       dockerfile: Dockerfile
     command: sleep infinity
+    privileged: true
+    working_dir: /workspaces/peer_to_peer_downloader
     depends_on:
       - android-emulator
     environment:
@@ -11,21 +15,32 @@ services:
       ANDROID_SDK_ROOT: /opt/android-sdk
       ANDROID_SERIAL: android-emulator:5555
       CAPACITOR_ANDROID_STUDIO_PATH: /bin/false
+      JAVA_HOME: /usr/lib/jvm/temurin-21-jdk-amd64
       RAILS_ENV: development
+      WORKSPACE_FOLDER: /workspaces/peer_to_peer_downloader
     ports:
       - "3000:3000"
       - "4200:4200"
     volumes:
       - ..:/workspaces/peer_to_peer_downloader:cached
+      - devcontainer-home:/home/node
+      - workspace-docker-data:/var/lib/docker
 
   android-emulator:
     image: budtmo/docker-android:emulator_11.0
     privileged: true
     environment:
-      DEVICE: "Pixel_5"
-      EMULATOR_ARGS: "-no-snapshot -noaudio -no-boot-anim -gpu swiftshader_indirect"
+      EMULATOR_DEVICE: "Nexus 5"
+      EMULATOR_NO_SKIN: "true"
+      EMULATOR_ADDITIONAL_ARGS: "-no-snapshot -no-snapshot-save -no-snapshot-load -noaudio -no-boot-anim -no-metrics -camera-back none -camera-front none -gpu swiftshader_indirect"
       WEB_VNC: "true"
+    devices:
+      - "/dev/kvm:/dev/kvm"
     ports:
       - "127.0.0.1:15555:5555"
       - "127.0.0.1:16080:6080"
     shm_size: "2gb"
+
+volumes:
+  devcontainer-home:
+  workspace-docker-data:

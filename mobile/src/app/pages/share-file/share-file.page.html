@@ -30,6 +30,11 @@
 
   <section *ngIf="prepared" class="result">
     <img [src]="prepared.qrDataUrl" alt="Encrypted file share QR code" />
+    <ion-button (click)="copyShareCode()" expand="block" fill="outline">
+      <ion-icon name="copy-outline" slot="start"></ion-icon>
+      Copy Share Code
+    </ion-button>
+    <ion-note *ngIf="clipboardMessage" color="success">{{ clipboardMessage }}</ion-note>
     <ion-item>
       <ion-textarea
         [ngModel]="prepared.shareCode"

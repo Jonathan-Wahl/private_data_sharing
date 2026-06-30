@@ -14,6 +14,7 @@
       <ion-card-subtitle>{{ status.platform }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
+      <p class="status-detail">{{ statusDetail() }}</p>
       <ion-button (click)="refreshStatus()" fill="outline" size="small">
         <ion-icon name="refresh-outline" slot="start"></ion-icon>
         Refresh

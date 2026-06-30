@@ -95,7 +95,22 @@ export class TorrentPage implements OnDestroy, OnInit {
     }
   }
 
+  async updateVpnRequired(job: TorrentJob, event: CustomEvent): Promise<void> {
+    this.error = '';
+    const checked = Boolean(event.detail?.checked);
+
+    try {
+      this.jobs = await this.torrentService.updateVpnRequired(job.id, checked);
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'Unable to update torrent.';
+    }
+  }
+
   vpnStatusLabel(): string {
     return this.vpnStatusService.statusLabel(this.vpnStatus);
+  }
+
+  vpnStatusDetail(): string {
+    return this.vpnStatusService.statusDetail(this.vpnStatus);
   }
 }

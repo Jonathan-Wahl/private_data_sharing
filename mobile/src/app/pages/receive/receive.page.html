@@ -8,6 +8,12 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-button (click)="pasteShareCode()" expand="block" fill="outline">
+    <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+    Paste Share Code
+  </ion-button>
+  <ion-note *ngIf="clipboardMessage" color="success">{{ clipboardMessage }}</ion-note>
+
   <ion-item>
     <ion-textarea
       [(ngModel)]="shareCode"
@@ -30,6 +36,10 @@
   </ion-text>
 
   <section *ngIf="decryptedText" class="result">
+    <ion-button (click)="copyDecryptedText()" expand="block" fill="outline">
+      <ion-icon name="copy-outline" slot="start"></ion-icon>
+      Copy Text
+    </ion-button>
     <ion-item>
       <ion-textarea
         [ngModel]="decryptedText"

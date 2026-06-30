@@ -4,6 +4,18 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
 const torrents = new Map();
+const WEBTORRENT_TRACKERS = [
+  'wss://tracker.btorrent.xyz',
+  'wss://tracker.openwebtorrent.com',
+  'wss://tracker.webtorrent.dev',
+];
+const CLASSIC_TRACKERS = [
+  'http://tracker.opentrackr.org:1337/announce',
+  'http://tracker2.dler.org:80/announce',
+  'https://tracker.bt4g.com:443/announce',
+  'https://tracker.zhuqiy.com:443/announce',
+];
+const DESKTOP_TRACKERS = [...WEBTORRENT_TRACKERS, ...CLASSIC_TRACKERS];
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -64,7 +76,15 @@ function sourceFromJob(job) {
 
 async function registerTorrentHandlers() {
   const WebTorrent = await getWebTorrent();
-  const client = new WebTorrent();
+  const client = new WebTorrent({
+    dht: true,
+    lsd: true,
+    tracker: {
+      announce: DESKTOP_TRACKERS,
+    },
+    utPex: true,
+    utp: true,
+  });
 
   ipcMain.handle('torrent:start', async (event, job) => {
     const existing = torrents.get(job.id);
@@ -76,7 +96,7 @@ async function registerTorrentHandlers() {
 
     const outputPath = desktopDownloadRoot();
 
-    client.add(sourceFromJob(job), { path: outputPath }, (torrent) => {
+    client.add(sourceFromJob(job), { announce: DESKTOP_TRACKERS, path: outputPath }, (torrent) => {
       const state = { sender: event.sender, torrent };
 
       torrents.set(job.id, state);

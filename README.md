@@ -46,7 +46,7 @@ Message body example:
 The mobile development environment defaults to:
 
 ```ts
-signalingApiBaseUrl: 'http://localhost:3000/api';
+signalingApiBaseUrl: "http://localhost:3000/api";
 ```
 
 Production remains blank until you choose a deployed coordination API.
@@ -160,8 +160,9 @@ The API includes a Brakeman ignore file only for runtime lifecycle warnings from
 
 ## Platform Boundaries
 
-- Web, Android, and iOS WebView torrent downloads use WebTorrent and require WebRTC-capable torrent swarms and trackers.
+- Web and iOS WebView torrent downloads use WebTorrent with WebSocket trackers and require WebRTC-capable torrent swarms.
+- Android torrent downloads use a native libtorrent engine and can discover classic peers through UDP/HTTP trackers and DHT.
 - Android can block VPN-required torrent jobs until the OS reports an active VPN transport.
 - Android can connect selected VPN Gate OpenVPN profiles in app through the bundled OpenVPN engine and Android VPN consent flow.
 - iOS requires a Network Extension/Packet Tunnel target for equivalent in-app OpenVPN support.
-- Electron desktop builds download through the main-process WebTorrent engine and save completed files under the user's downloads folder.
+- Electron desktop builds download through the main-process WebTorrent engine, support classic peer discovery in Node, and save completed files under the user's downloads folder.

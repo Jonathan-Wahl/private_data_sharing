@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 
+import { ClipboardService } from '../../services/clipboard';
 import { DownloadHistoryService } from '../../services/download-history';
 import { PreparedStringShare, StringShareService } from '../../services/string-share';
+import { createUuid } from '../../services/uuid';
 
 @Component({
   selector: 'app-share-text',
@@ -10,17 +12,29 @@ import { PreparedStringShare, StringShareService } from '../../services/string-s
   standalone: false,
 })
 export class ShareTextPage {
+  clipboardMessage = '';
   error = '';
   isWorking = false;
   prepared?: PreparedStringShare;
   text = '';
 
   constructor(
+    private readonly clipboard: ClipboardService,
     private readonly history: DownloadHistoryService,
     private readonly stringShare: StringShareService,
   ) {}
 
+  async copyShareCode(): Promise<void> {
+    if (!this.prepared) {
+      return;
+    }
+
+    await this.clipboard.copyText(this.prepared.shareCode, 'Secure Share code');
+    this.clipboardMessage = 'Share code copied.';
+  }
+
   async prepare(): Promise<void> {
+    this.clipboardMessage = '';
     this.error = '';
     this.prepared = undefined;
 
@@ -35,7 +49,7 @@ export class ShareTextPage {
       this.prepared = await this.stringShare.prepare(this.text);
       await this.history.add({
         bytesTotal: new TextEncoder().encode(this.text).byteLength,
-        id: crypto.randomUUID(),
+        id: createUuid(),
         kind: 'text-share',
         name: 'Encrypted text share',
         status: 'complete',

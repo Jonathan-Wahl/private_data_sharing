@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
 import { LocalStorageService } from './local-storage';
+import { createUuid } from './uuid';
 
 export interface SignalingMessage {
   body: unknown;
@@ -122,7 +123,7 @@ export class SignalingService {
         {
           ...message,
           createdAt: new Date().toISOString(),
-          id: crypto.randomUUID(),
+          id: createUuid(),
         },
       ],
     };
@@ -162,7 +163,7 @@ export class SignalingService {
     const room: SignalingRoom = {
       createdAt: new Date(now).toISOString(),
       expiresAt: new Date(now + this.roomTtlMs).toISOString(),
-      id: crypto.randomUUID(),
+      id: createUuid(),
       messages: [],
     };
     const ids = await this.roomIds();
