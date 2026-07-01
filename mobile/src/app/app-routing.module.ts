@@ -26,10 +26,6 @@ const routes: Routes = [
     loadChildren: () => import('./pages/receive/receive.module').then((m) => m.ReceivePageModule),
   },
   {
-    path: 'torrent',
-    loadChildren: () => import('./pages/torrent/torrent.module').then((m) => m.TorrentPageModule),
-  },
-  {
     path: 'history',
     loadChildren: () => import('./pages/history/history.module').then((m) => m.HistoryPageModule),
   },

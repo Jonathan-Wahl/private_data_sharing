@@ -6,9 +6,7 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "prestart": "npm run vendor:webtorrent",
     "start": "ng serve",
-    "prebuild": "npm run vendor:webtorrent",
     "build": "ng build",
     "desktop:dev": "npm run build && electron .",
     "desktop:dist": "npm run build && electron-builder",
@@ -19,7 +17,6 @@
     "lint": "ng lint",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "assets:generate": "capacitor-assets generate --ios --android --iconBackgroundColor '#0b1220' --iconBackgroundColorDark '#0b1220' --splashBackgroundColor '#0b1220' --splashBackgroundColorDark '#0b1220'",
-    "vendor:webtorrent": "esbuild node_modules/webtorrent/dist/webtorrent.min.js --target=chrome83 --format=iife --global-name=WebTorrentModule --footer:js=\"globalThis.WebTorrent = globalThis.WebTorrentModule.default;\" --outfile=src/assets/vendor/webtorrent.min.js --log-level=warning",
     "format": "prettier --write \"src/**/*.{ts,html,scss}\" \"electron/**/*.cjs\" \"*.{js,json,md,ts}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss}\" \"electron/**/*.cjs\" \"*.{js,json,md,ts}\""
   },
@@ -70,7 +67,6 @@
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "webtorrent": "^3.0.16",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -111,5 +107,5 @@
     "typescript": "~5.9.0",
     "vitest": "^3.2.6"
   },
-  "description": "Privacy-first Ionic and Capacitor app for encrypted peer-to-peer sharing and legal torrent download management."
+  "description": "Privacy-first Ionic and Capacitor app for encrypted peer-to-peer sharing."
 }

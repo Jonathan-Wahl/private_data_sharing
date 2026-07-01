@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { LocalStorageService } from './local-storage';
 
-export type DownloadRecordKind = 'file-share' | 'text-share' | 'torrent';
+export type DownloadRecordKind = 'file-share' | 'text-share';
 export type DownloadRecordStatus = 'active' | 'complete' | 'failed' | 'paused' | 'queued';
 
 export interface DownloadRecord {

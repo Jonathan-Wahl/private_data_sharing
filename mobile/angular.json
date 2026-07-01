@@ -31,11 +31,6 @@
                 "output": "./svg"
               },
               {
-                "glob": "webtorrent.min.js",
-                "input": "src/assets/vendor",
-                "output": "assets/vendor"
-              },
-              {
                 "glob": "manifest.webmanifest",
                 "input": "src",
                 "output": "."

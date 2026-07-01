@@ -1,6 +1,6 @@
 # Secure Share
 
-Privacy-first workspace for encrypted text/file sharing, short-lived signaling, and torrent downloading across mobile, web, and desktop.
+Privacy-first workspace for encrypted text/file sharing and short-lived signaling across mobile, web, and desktop.
 
 ## Layout
 
@@ -14,15 +14,13 @@ Privacy-first workspace for encrypted text/file sharing, short-lived signaling, 
 - Encrypt selected files locally before creating a portable share code.
 - Generate QR images for encrypted share codes.
 - Receive/decrypt text and file share codes on device.
-- Store transfer history, torrent jobs, and VPN-required preferences locally with Capacitor Preferences.
+- Store transfer history and VPN-required preferences locally with Capacitor Preferences.
 - Use local/offline signaling by default, or Rails API signaling when `mobile/src/environments/environment*.ts` sets `signalingApiBaseUrl`.
-- Download torrents from magnet URIs or `.torrent` files.
-- Require an active Android VPN before starting selected torrent jobs.
 - Package the Ionic app as an Electron desktop app for Linux and Windows.
 
 ## Signaling API
 
-The Rails API is in `api/`. It stores only short-lived room/message metadata for pairing and WebRTC coordination. It rejects payload-like fields such as plaintext, raw keys, files, strings, torrents, and generic payload content.
+The Rails API is in `api/`. It stores only short-lived room/message metadata for pairing and WebRTC coordination. It rejects payload-like fields such as plaintext, raw keys, files, strings, and generic payload content.
 
 Endpoints:
 
@@ -160,9 +158,5 @@ The API includes a Brakeman ignore file only for runtime lifecycle warnings from
 
 ## Platform Boundaries
 
-- Web and iOS WebView torrent downloads use WebTorrent with WebSocket trackers and require WebRTC-capable torrent swarms.
-- Android torrent downloads use a native libtorrent engine and can discover classic peers through UDP/HTTP trackers and DHT.
-- Android can block VPN-required torrent jobs until the OS reports an active VPN transport.
 - Android can connect selected VPN Gate OpenVPN profiles in app through the bundled OpenVPN engine and Android VPN consent flow.
 - iOS requires a Network Extension/Packet Tunnel target for equivalent in-app OpenVPN support.
-- Electron desktop builds download through the main-process WebTorrent engine, support classic peer discovery in Node, and save completed files under the user's downloads folder.

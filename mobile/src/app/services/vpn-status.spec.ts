@@ -18,6 +18,17 @@ describe('VpnStatusService', () => {
     const service = new VpnStatusService();
 
     expect(service.statusLabel({ active: true, platform: 'android' })).toBe('VPN active');
+    expect(
+      service.statusLabel({
+        active: true,
+        internetValidated: false,
+        online: true,
+        platform: 'android',
+      }),
+    ).toBe('VPN active, internet unverified');
+    expect(service.statusLabel({ active: false, online: false, platform: 'android' })).toBe(
+      'Phone offline',
+    );
     expect(service.statusLabel({ active: false, platform: 'android' })).toBe('VPN not active');
     expect(service.statusLabel({ active: false, platform: 'android', serviceRunning: true })).toBe(
       'VPN tunnel not active',
@@ -30,6 +41,22 @@ describe('VpnStatusService', () => {
     expect(service.statusDetail({ active: false, platform: 'android', serviceRunning: true })).toBe(
       'The VPN service is running, but Android has not established a routed VPN tunnel.',
     );
+  });
+
+  it('describes Android offline and unvalidated VPN states separately', () => {
+    const service = new VpnStatusService();
+
+    expect(service.statusDetail({ active: false, online: false, platform: 'android' })).toContain(
+      'not reporting any network with internet capability',
+    );
+    expect(
+      service.statusDetail({
+        active: true,
+        internetValidated: false,
+        online: true,
+        platform: 'android',
+      }),
+    ).toContain('has not validated internet access');
   });
 
   it('waits until Android reports an active VPN network', async () => {

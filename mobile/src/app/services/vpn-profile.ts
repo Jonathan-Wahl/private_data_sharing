@@ -11,6 +11,8 @@ const nativeVpnProfile = registerPlugin<NativeVpnProfilePlugin>('VpnProfile');
 
 export interface VpnProfileStatus {
   active: boolean;
+  internetValidated?: boolean;
+  online?: boolean;
   platform: string;
   serviceRunning?: boolean;
   state: 'connected' | 'connecting' | 'disconnected' | 'disconnecting' | 'downloaded';

@@ -77,9 +77,12 @@ public class VpnProfilePlugin extends Plugin {
     }
 
     private JSObject statusResult(String state) {
+        VpnNetworkDetector.NetworkState networkState = VpnNetworkDetector.detect(getContext());
         JSObject result = new JSObject();
 
-        result.put("active", isVpnActive());
+        result.put("active", networkState.vpnActive);
+        result.put("internetValidated", networkState.internetValidated);
+        result.put("online", networkState.online);
         result.put("platform", "android");
         result.put("state", state);
         result.put("serviceRunning", OpenVpnServiceState.isRunning(getContext()));
@@ -88,7 +91,7 @@ public class VpnProfilePlugin extends Plugin {
     }
 
     private String profileState() {
-        if (isVpnActive()) {
+        if (VpnNetworkDetector.isVpnActive(getContext())) {
             return "connected";
         }
 
@@ -118,9 +121,5 @@ public class VpnProfilePlugin extends Plugin {
                 null,
                 new String[0]
         );
-    }
-
-    private boolean isVpnActive() {
-        return VpnNetworkDetector.isVpnActive(getContext());
     }
 }

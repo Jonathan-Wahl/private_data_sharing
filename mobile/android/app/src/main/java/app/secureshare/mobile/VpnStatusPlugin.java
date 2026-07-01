@@ -13,8 +13,11 @@ import com.getcapacitor.PluginMethod;
 public class VpnStatusPlugin extends Plugin {
     @PluginMethod
     public void getStatus(PluginCall call) {
+        VpnNetworkDetector.NetworkState networkState = VpnNetworkDetector.detect(getContext());
         JSObject result = new JSObject();
-        result.put("active", isVpnActive());
+        result.put("active", networkState.vpnActive);
+        result.put("internetValidated", networkState.internetValidated);
+        result.put("online", networkState.online);
         result.put("platform", "android");
         result.put("serviceRunning", OpenVpnServiceState.isRunning(getContext()));
         call.resolve(result);
@@ -28,7 +31,4 @@ public class VpnStatusPlugin extends Plugin {
         call.resolve();
     }
 
-    private boolean isVpnActive() {
-        return VpnNetworkDetector.isVpnActive(getContext());
-    }
 }

@@ -1,6 +1,6 @@
 # Secure Share API
 
-Rails API for short-lived signaling only. It must not store files, shared text, torrents, plaintext, raw keys, or transferred payload data.
+Rails API for short-lived signaling only. It must not store files, shared text, plaintext, raw keys, or transferred payload data.
 
 ## Endpoints
 

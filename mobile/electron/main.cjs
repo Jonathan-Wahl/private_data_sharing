@@ -1,21 +1,6 @@
-const { app, BrowserWindow, ipcMain, net, protocol } = require('electron');
-const fs = require('node:fs');
+const { app, BrowserWindow, net, protocol } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-
-const torrents = new Map();
-const WEBTORRENT_TRACKERS = [
-  'wss://tracker.btorrent.xyz',
-  'wss://tracker.openwebtorrent.com',
-  'wss://tracker.webtorrent.dev',
-];
-const CLASSIC_TRACKERS = [
-  'http://tracker.opentrackr.org:1337/announce',
-  'http://tracker2.dler.org:80/announce',
-  'https://tracker.bt4g.com:443/announce',
-  'https://tracker.zhuqiy.com:443/announce',
-];
-const DESKTOP_TRACKERS = [...WEBTORRENT_TRACKERS, ...CLASSIC_TRACKERS];
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -46,128 +31,6 @@ async function createWindow() {
   await win.loadURL('secure-share://app/index.html');
 }
 
-function desktopDownloadRoot() {
-  const target = path.join(app.getPath('downloads'), 'SecureShare', 'Torrents');
-
-  fs.mkdirSync(target, { recursive: true });
-
-  return target;
-}
-
-function emitTorrentUpdate(sender, id, update) {
-  if (!sender.isDestroyed()) {
-    sender.send('torrent:update', { id, ...update });
-  }
-}
-
-async function getWebTorrent() {
-  const module = await import('webtorrent');
-
-  return module.default;
-}
-
-function sourceFromJob(job) {
-  if (job.sourceType === 'magnet') {
-    return job.source;
-  }
-
-  return Buffer.from(job.source, 'base64');
-}
-
-async function registerTorrentHandlers() {
-  const WebTorrent = await getWebTorrent();
-  const client = new WebTorrent({
-    dht: true,
-    lsd: true,
-    tracker: {
-      announce: DESKTOP_TRACKERS,
-    },
-    utPex: true,
-    utp: true,
-  });
-
-  ipcMain.handle('torrent:start', async (event, job) => {
-    const existing = torrents.get(job.id);
-
-    if (existing) {
-      existing.torrent.resume();
-      return;
-    }
-
-    const outputPath = desktopDownloadRoot();
-
-    client.add(sourceFromJob(job), { announce: DESKTOP_TRACKERS, path: outputPath }, (torrent) => {
-      const state = { sender: event.sender, torrent };
-
-      torrents.set(job.id, state);
-
-      const update = () => {
-        emitTorrentUpdate(event.sender, job.id, {
-          downloadSpeed: Math.round(torrent.downloadSpeed),
-          files: torrent.files.map((file) => ({
-            length: file.length,
-            name: file.path || file.name,
-          })),
-          name: torrent.name || 'Torrent download',
-          peers: torrent.numPeers,
-          progress: Math.round(torrent.progress * 100),
-          status: 'running',
-          uploadSpeed: Math.round(torrent.uploadSpeed),
-        });
-      };
-
-      torrent.on('download', update);
-      torrent.on('wire', update);
-      torrent.on('warning', (warning) => {
-        emitTorrentUpdate(event.sender, job.id, { error: warning.message });
-      });
-      torrent.on('error', (error) => {
-        torrents.delete(job.id);
-        emitTorrentUpdate(event.sender, job.id, {
-          downloadSpeed: 0,
-          error: error.message,
-          status: 'error',
-          uploadSpeed: 0,
-        });
-      });
-      torrent.on('done', () => {
-        torrents.delete(job.id);
-        emitTorrentUpdate(event.sender, job.id, {
-          completedFiles: torrent.files.map((file) => ({
-            name: file.path || file.name,
-            path: path.join(outputPath, file.path || file.name),
-            size: file.length,
-          })),
-          downloadSpeed: 0,
-          peers: torrent.numPeers,
-          progress: 100,
-          status: 'complete',
-          uploadSpeed: 0,
-        });
-      });
-
-      update();
-    });
-  });
-
-  ipcMain.handle('torrent:pause', (_event, id) => {
-    torrents.get(id)?.torrent.pause();
-  });
-
-  ipcMain.handle('torrent:resume', (_event, id) => {
-    torrents.get(id)?.torrent.resume();
-  });
-
-  ipcMain.handle('torrent:cancel', (_event, id) => {
-    const state = torrents.get(id);
-
-    if (state) {
-      state.torrent.destroy();
-      torrents.delete(id);
-    }
-  });
-}
-
 app.whenReady().then(async () => {
   protocol.handle('secure-share', (request) => {
     const requestUrl = new URL(request.url);
@@ -182,7 +45,6 @@ app.whenReady().then(async () => {
     return net.fetch(pathToFileURL(resolvedPath).toString());
   });
 
-  await registerTorrentHandlers();
   await createWindow();
 });
 

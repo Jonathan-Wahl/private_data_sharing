@@ -22,6 +22,13 @@ mobile/.ionic
 mobile/dist-electron
 mobile/www
 mobile/platforms
+
+# Android signing material
+/artifacts/
+*.jks
+*.keystore
+android-release-signing.properties
+mobile/android/release-signing.properties
 mobile/plugins
 
 # Compiled output

@@ -10,39 +10,76 @@ final class VpnNetworkDetector {
 
     @SuppressWarnings("deprecation")
     static boolean isVpnActive(Context context) {
+        return detect(context).vpnActive;
+    }
+
+    @SuppressWarnings("deprecation")
+    static NetworkState detect(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         if (connectivityManager == null) {
-            return false;
+            return new NetworkState(false, false, false);
         }
 
         Network activeNetwork = connectivityManager.getActiveNetwork();
+        NetworkState.Builder state = new NetworkState.Builder();
 
-        if (hasVpnTransport(connectivityManager, activeNetwork)) {
-            return true;
-        }
+        state.include(capabilities(connectivityManager, activeNetwork));
 
         for (Network network : connectivityManager.getAllNetworks()) {
             if (activeNetwork != null && activeNetwork.equals(network)) {
                 continue;
             }
 
-            if (hasVpnTransport(connectivityManager, network)) {
-                return true;
-            }
+            state.include(capabilities(connectivityManager, network));
         }
 
-        return false;
+        return state.build();
     }
 
-    private static boolean hasVpnTransport(ConnectivityManager connectivityManager, Network network) {
+    private static NetworkCapabilities capabilities(
+            ConnectivityManager connectivityManager,
+            Network network
+    ) {
         if (network == null) {
-            return false;
+            return null;
         }
 
-        NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+        return connectivityManager.getNetworkCapabilities(network);
+    }
 
-        return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
+    static final class NetworkState {
+        final boolean internetValidated;
+        final boolean online;
+        final boolean vpnActive;
+
+        private NetworkState(boolean online, boolean internetValidated, boolean vpnActive) {
+            this.online = online;
+            this.internetValidated = internetValidated;
+            this.vpnActive = vpnActive;
+        }
+
+        private static final class Builder {
+            private boolean internetValidated;
+            private boolean online;
+            private boolean vpnActive;
+
+            private void include(NetworkCapabilities capabilities) {
+                if (capabilities == null) {
+                    return;
+                }
+
+                online = online || capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+                internetValidated =
+                        internetValidated
+                                || capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+                vpnActive = vpnActive || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
+            }
+
+            private NetworkState build() {
+                return new NetworkState(online, internetValidated, vpnActive);
+            }
+        }
     }
 }

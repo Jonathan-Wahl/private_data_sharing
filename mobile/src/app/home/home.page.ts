@@ -34,12 +34,6 @@ export class HomePage {
       title: 'Receive',
     },
     {
-      detail: 'Manage torrent downloads through the mobile engine.',
-      icon: 'cloud-download-outline',
-      route: '/torrent',
-      title: 'Torrents',
-    },
-    {
       detail: 'Check VPN status and inspect available provider servers.',
       icon: 'shield-checkmark-outline',
       route: '/vpn',

@@ -10,7 +10,6 @@ class SignalingMessage < ApplicationRecord
     secret
     string
     text
-    torrent
   ].freeze
   MAX_BODY_BYTES = 16.kilobytes
 

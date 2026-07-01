@@ -25,13 +25,7 @@ export class PrivacyPage {
     },
     {
       title: 'Local state',
-      detail:
-        'History and torrent queue entries are stored on this device through Capacitor Preferences.',
-    },
-    {
-      title: 'Torrent limitation',
-      detail:
-        'Torrent downloads run locally through the app runtime. Browser and mobile WebView downloads depend on WebRTC-capable swarms and trackers.',
+      detail: 'History entries are stored on this device through Capacitor Preferences.',
     },
   ];
 }

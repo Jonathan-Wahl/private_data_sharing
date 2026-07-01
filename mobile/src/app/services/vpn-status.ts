@@ -3,6 +3,9 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 
 export interface VpnStatus {
   active: boolean;
+  error?: string;
+  internetValidated?: boolean;
+  online?: boolean;
   platform: string;
   serviceRunning?: boolean;
 }
@@ -27,8 +30,12 @@ export class VpnStatusService {
 
     try {
       return await nativeVpnStatus.getStatus();
-    } catch {
-      return { active: false, platform };
+    } catch (error) {
+      return {
+        active: false,
+        error: error instanceof Error ? error.message : 'VPN status is unavailable.',
+        platform,
+      };
     }
   }
 
@@ -59,6 +66,14 @@ export class VpnStatusService {
   }
 
   statusLabel(status: VpnStatus): string {
+    if (status.online === false) {
+      return 'Phone offline';
+    }
+
+    if (status.active && status.internetValidated === false) {
+      return 'VPN active, internet unverified';
+    }
+
     if (!status.active && status.serviceRunning) {
       return 'VPN tunnel not active';
     }
@@ -67,7 +82,19 @@ export class VpnStatusService {
   }
 
   statusDetail(status: VpnStatus): string {
+    if (status.error) {
+      return `Android VPN status could not be read: ${status.error}`;
+    }
+
+    if (status.online === false) {
+      return 'Android is not reporting any network with internet capability. Connect mobile data or Wi-Fi, then refresh.';
+    }
+
     if (status.active) {
+      if (status.internetValidated === false) {
+        return 'Android reports a VPN tunnel, but has not validated internet access through it yet.';
+      }
+
       return 'Android is routing app traffic through a VPN network.';
     }
 
